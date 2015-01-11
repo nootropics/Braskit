@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2013, 2014 Frank Usrs
+ * Copyright (C) 2013-2015 Frank Usrs
  *
  * See LICENSE for terms and conditions of use.
  */
@@ -434,8 +434,16 @@ class Board {
      * Write a file to a board directory
      */
     public function write($filename, $contents) {
+        global $app;
+        static $file;
+
+        if (!isset($file)) {
+            $file = $app['file_utils'];
+        }
+
         $filename = sprintf('%s/%s', $this->board, $filename);
-        return writePage($filename, $contents);
+
+        return $file->write($filename, $contents);
     }
 
     public function unlink($filename) {

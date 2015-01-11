@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2013, 2014 Frank Usrs
+ * Copyright (C) 2013-2015 Frank Usrs
  *
  * See LICENSE for terms and conditions of use.
  */
@@ -247,23 +247,6 @@ function make_name_tripcode($input, $tripkey = '!') {
     }
 
     return array($name, $tripcode);
-}
-
-function writePage($filename, $contents) {
-    global $app;
-
-    $tempfile = tempnam($app['path.tmp'], 'tmp'); /* Create the temporary file */
-    $fp = fopen($tempfile, 'w');
-    fwrite($fp, $contents);
-    fclose($fp);
-
-    /* If we aren't able to use the rename function, try the alternate method */
-    if (!@rename($tempfile, $filename)) {
-        copy($tempfile, $filename);
-        unlink($tempfile);
-    }
-
-    chmod($filename, 0666 & ~umask()); /* it was created 0600 */
 }
 
 function create_ban_message($post) {

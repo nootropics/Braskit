@@ -1,11 +1,13 @@
 <?php
 /*
- * Copyright (C) 2013, 2014 Frank Usrs
+ * Copyright (C) 2013-2015 Frank Usrs
  *
  * See LICENSE for terms and conditions of use.
  */
 
 namespace Braskit\Cache;
+
+use Braskit\Util\FileUtils;
 
 /**
  * Cache stored in PHP files.
@@ -19,19 +21,19 @@ class FileCache implements CacheInterface {
     protected $cacheDir = '';
 
     /**
-     * Cache directory exists.
-     *
-     * @var boolean
+     * @var FileUtils
      */
-    protected $dirExists = false;
+    protected $file;
 
     /**
      * Constructor.
      *
      * @param string $cacheDir Directory to cache to.
+     * @param FileUtils $fileUtils
      */
-    public function __construct($cacheDir) {
+    public function __construct($cacheDir, FileUtils $fileUtils) {
         $this->cacheDir = $cacheDir;
+        $this->file = $fileUtils;
     }
 
     /**
@@ -54,8 +56,8 @@ class FileCache implements CacheInterface {
 
         // We couldn't load the cache, or it expired
         if (!is_array($cache) || $cache['expired']) {
-            // delete the file, if it exists
-            @unlink($filename);
+            // delete the file if it exists
+            $this->file->remove($filename);
 
             return null;
         }
@@ -70,8 +72,6 @@ class FileCache implements CacheInterface {
         if ($value === null) {
             throw new \InvalidArgumentException('Cached value cannot be NULL');
         }
-
-        $this->createDirectory();
 
         // Content of the cache file
         $content = '<?php return array(';
@@ -90,16 +90,16 @@ class FileCache implements CacheInterface {
 
         $content .= ');';
 
-        writePage($this->getFileName($key), $content);
+        $this->file->write($this->getFileName($key), $content);
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function delete($key) {
-        $deleted = @unlink($this->getFileName($key));
+        $filename = $this->getFileName($key);
 
-        if (!$deleted) {
-            $error = error_get_last()['message'];
-            throw new \RuntimeException("Couldn't delete file: $error");
-        }
+        $this->file->remove($filename);
     }
 
     /**
@@ -115,7 +115,7 @@ class FileCache implements CacheInterface {
         }
 
         foreach ($files as $file) {
-            @unlink($file);
+            $this->file->remove($file);
         }
     }
 
@@ -127,25 +127,5 @@ class FileCache implements CacheInterface {
      */
     protected function getFileName($key) {
         return $this->cacheDir.'/cache-'.md5($key).'.php';
-    }
-
-    /**
-     * Ensures that the cache directory exists. Should be called when writing to
-     * cache.
-     *
-     * @throws \RuntimeException if the cache directory cannot be created.
-     */
-    protected function createDirectory() {
-        if ($this->dirExists || is_dir($this->cacheDir)) {
-            return;
-        }
-
-        $created = @mkdir($this->cacheDir, 0777 & ~umask(), true);
-
-        if (!$created) {
-            throw new \RuntimeException("Couldn't create cache directory");
-        }
-
-        $this->dirExists = true;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2013, 2014 Frank Usrs
+ * Copyright (C) 2013-2015 Frank Usrs
  *
  * See LICENSE for terms and conditions of use.
  */
@@ -157,7 +157,7 @@ $app['cache'] = function () use ($app) {
         return new Braskit\Cache\NullCache();
     case 'file':
     case 'php':
-        return new Braskit\Cache\FileCache($app['path.cache']);
+        return new Braskit\Cache\FileCache($app['path.cache'], $app['file_utils']);
     default:
         throw new LogicException("Unknown cache type: $type");
     }
@@ -201,6 +201,13 @@ $app['dispatcher'] = function () use ($app) {
 
     return $dispatcher;
 };
+
+$app['file_utils'] = $app->factory(function () use ($app) {
+    $utils = new Braskit\Util\FileUtils();
+    $utils->setTempDir($app['path.tmp']);
+
+    return $utils;
+});
 
 $app['param'] = $app->factory(function () use ($app) {
     return new Braskit\Param($app['request']);
