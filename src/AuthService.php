@@ -15,16 +15,23 @@ use Symfony\Component\HttpFoundation\Session\Session;
 /**
  * Service that handles stuff related to authentication.
  *
- * Neither the plain text password, nor the bcrypt'd password are not stored in
- * the session. Instead, a sha256 sum of the latter ("the password" from now on)
- * is used.
+ * Neither the plain text password, nor the bcrypt'd password are stored in the
+ * session. Instead, a sha256 sum of the latter is used for performance reasons.
+ * It *shouldn't* have any effect on security, but who knows.
  *
  * A login is active as long as the username and password stored in the session
  * match up with the details in the database.
  */
 class AuthService {
+    /**
+     * @var string
+     */
     const SESSKEY_USER = 'auth-user';
-    const SESSKEY_PASS = 'auth-password-hash';
+
+    /**
+     * @var string
+     */
+    const SESSKEY_HASH = 'auth-password-hash';
 
     /**
      * @var Session
@@ -59,13 +66,22 @@ class AuthService {
     public function authenticate($restrict = true) {
         if ($this->session->has(static::SESSKEY_USER)) {
             $username = $this->session->get(static::SESSKEY_USER);
-            $password = $this->session->get(static::SESSKEY_PASS);
 
             $user = $this->user->get($username, false);
 
-            if ($user && $password === hash('sha256', $user->password)) {
-                $user->checkSuspension();
-                return $user;
+            if ($user) {
+                $sessHash = $this->session->get(static::SESSKEY_HASH);
+
+                $dbHash = hash('sha256', $user->password);
+
+                // the docs dont say if sessions are subject to race conditions,
+                // so let's just assume they are
+                if (is_string($sessHash) && hash_equals($sessHash, $dbHash)) {
+                    $user->checkSuspension();
+
+                    // we are authenticated
+                    return $user;
+                }
             }
         }
 
@@ -106,7 +122,7 @@ class AuthService {
         $hash = hash('sha256', $user->password);
 
         $this->session->set(static::SESSKEY_USER, $user->username);
-        $this->session->set(static::SESSKEY_PASS, $hash);
+        $this->session->set(static::SESSKEY_HASH, $hash);
     }
 
     /**
@@ -114,6 +130,6 @@ class AuthService {
      */
     public function logout() {
         $this->session->remove(static::SESSKEY_USER);
-        $this->session->remove(static::SESSKEY_PASS);
+        $this->session->remove(static::SESSKEY_HASH);
     }
 }

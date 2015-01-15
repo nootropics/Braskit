@@ -7,6 +7,35 @@
 
 use Braskit\Error;
 
+if (!function_exists('hash_equals')) {
+    /**
+     * Constant-time string comparison used to avoid timing attacks. PHP 5.6+
+     * has this built-in, this is only for BC.
+     *
+     * @param string $hash1
+     * @param string $hash2
+     *
+     * @return boolean
+     */
+    function hash_equals($hash1, $hash2) {
+        $len = strlen($hash1);
+
+        if ($len !== strlen($hash2)) {
+            throw new \InvalidArgumentException(
+                'The string lengths of the arguments must be equal'
+            );
+        }
+
+        $cmp = 0;
+
+        for ($i = $len; $i--;) {
+            $cmp |= ord($hash1[$i]) ^ ord($hash2[$i]);
+        }
+
+        return $cmp === 0;
+    }
+}
+
 // helper function - TODO
 function get_ids($board) {
     global $app;
