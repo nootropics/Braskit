@@ -238,6 +238,137 @@ function shorten_filename($filename) {
     return sprintf('%s(...).%s', $short, $info['extension']);
 }
 
+/**
+ * Prettify a value for HTML.
+ *
+ * @param mixed $value A value to prettify.
+ * @param integer $depth Indentation, used for arrays.
+ *
+ * @todo Add proper support for objects. Recursion must be taken into account.
+ *
+ * @return string Prettified value.
+ */
+function bs_prettify($value, $depth = 0) {
+    $depth += 1;
+
+    $type = gettype($value);
+
+    switch ($type) {
+    case 'NULL':
+        $type = 'null'; // fix for uppercase stupidity
+        $text = 'null';
+        break;
+
+    case 'boolean':
+        $text = $value ? 'true' : 'false';
+        break;
+
+    case 'integer':
+    case 'double':
+        $text = (string)$value;
+        break;
+
+    case 'string':
+        $text = '"'.htmlspecialchars($value, ENT_QUOTES|ENT_HTML5, 'UTF-8').'"';
+        break;
+
+    case 'array':
+        $text = '[';
+
+        if ($value) {
+            $text .= "<br>";
+        }
+
+        foreach ($value as $key => $subvalue) {
+            // add indentation
+            $text .= str_repeat('&nbsp;', $depth * 2);
+
+            // add array key
+            $text .= bs_prettify($key);
+
+            // add key/value separator
+            $text .= ' => ';
+
+            // recursively call this function to format array items
+            $text .= bs_prettify($subvalue, $depth);
+
+            // add comma and newline
+            $text .= ",<br>";
+        }
+
+        // indent and add ending bracket
+        $text .= str_repeat('&nbsp;', ($depth - 1) * 2);
+        $text .= ']';
+
+        break;
+
+    case 'object':
+        if ($value instanceof \Closure) {
+            // anonymous function
+            $type = 'function';
+            $text = 'function (';
+
+            $r = new \ReflectionFunction($value);
+
+            $first = true;
+
+            foreach ($r->getParameters() as $param) {
+                if (!$first) {
+                    $text .= ', ';
+                }
+
+                if ($param->isArray()) {
+                    $text .= 'array ';
+                } elseif ($param->isCallable()) {
+                    $text .= 'callable ';
+                } else {
+                    // Lame solution, but $param->getClass() tries loading the
+                    // class, which is bad.
+                    if (
+                        preg_match(
+                        '/\s+([\w\\\\]+)\s+\$/',
+                            $param->__toString(),
+                            $matches
+                        ) && isset($matches[1])
+                    ) {
+                        $text .= $matches[1].' ';
+                    }
+                }
+
+                if ($param->isPassedByReference()) {
+                    $text .= '&amp;';
+                }
+
+                $text .= '$'.$param->getName();
+
+                if ($param->isDefaultValueAvailable()) {
+                    $text .= ' = ';
+                    $text .= bs_prettify($param->getDefaultValue());
+                }
+
+                $first = false;
+            }
+
+            $text .= ')';
+        } else {
+            // object
+            $text = '('.$type.')'.get_class($value);
+        }
+
+        break;
+
+    case 'resource':
+        $text = (string)$value;
+        break;
+
+    default:
+        $type = 'unknown';
+        $text = 'Unknown';
+    }
+
+    return '<kbd class="format-'.$type.'">'.$text.'</kbd>';
+}
+
 function make_name_tripcode($input, $tripkey = '!') {
     global $app;
 
@@ -245,7 +376,7 @@ function make_name_tripcode($input, $tripkey = '!') {
 
     // Check if we can reencode strings
     static $has_encode;
-    if (!isset($has_encode)) 
+    if (!isset($has_encode))
         $has_encode = extension_loaded('mbstring');
 
     // Split name into chunks

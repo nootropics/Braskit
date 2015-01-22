@@ -18,6 +18,7 @@ class TwigExtension extends Twig_Extension {
         $functions = array(
             new SimpleFunction('js', 'get_js'),
             new SimpleFunction('path', 'expand_path'),
+            new SimpleFunction('prettify', 'bs_prettify'),
         );
 
         return $functions;

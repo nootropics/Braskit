@@ -1,0 +1,27 @@
+{% extends _base %}
+
+{% block content %}
+  <h1 class="page-title">Viewing dictionary "{{ dictname }}"</h1>
+
+  <div class="block-form">
+    <table class="list-table">
+      <thead>
+        <tr>
+          <th>Key</th>
+          <th>Type</th>
+          <th>Default value</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for key in dict.getKeys() %}
+          <tr>
+            <td><kbd>{{ key }}</kbd></td>
+            <td>{{ dict.getType(key) }}</td>
+            <td><kbd>{{ prettify(dict.getDefault(key))|raw }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

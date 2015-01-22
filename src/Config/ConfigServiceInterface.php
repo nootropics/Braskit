@@ -49,6 +49,8 @@ interface ConfigServiceInterface {
      *
      * @param string $dictName Name of dictionary.
      *
+     * @throws Error if the dictionary does not exist.
+     *
      * @return Dictionary
      */
     public function getDictionary($dictName);

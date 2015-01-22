@@ -9,6 +9,7 @@ namespace Braskit\Config;
 
 use Braskit\Cache\CacheInterface;
 use Braskit\Database;
+use Braskit\Error;
 
 class ConfigService implements ConfigServiceInterface {
     /**
@@ -93,7 +94,7 @@ class ConfigService implements ConfigServiceInterface {
             }
         }
 
-        throw new \RuntimeException("No dictionary '$dictName' exists");
+        throw new Error("No dictionary '$dictName' exists");
     }
 
     /**

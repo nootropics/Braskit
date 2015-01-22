@@ -38,6 +38,9 @@ class Main extends Router {
             "/$board_re/edit" => 'BoardEdit',
             "/$board_re/rebuild" => 'Rebuild',
 
+            // Config
+            '/config/dict/(.*)' => 'ConfigDictView',
+
             // Mod global actions
             '/bans' => 'Bans',
             '/boards' => 'BoardsView',
