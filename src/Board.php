@@ -550,12 +550,12 @@ class Board {
             // use the global twig object
             $this->twig = $app['template'];
         } else {
-            $chain = $app['template.chain'];
+            $chain = $app['template_chain'];
 
             $chain->addLoader(new Braskit_Twig_Loader($path));
-            $chain->addLoader($app['template.loader']);
+            $chain->addLoader($app['template_loader']);
 
-            $this->twig = $app['template.creator']($chain);
+            $this->twig = $app['template_creator']($chain);
         }
 
         return $this->twig;

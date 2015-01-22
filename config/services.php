@@ -56,6 +56,30 @@ $app['session.name'] = function () use ($app) {
 
 $app['template.debug'] = false;
 
+$app['template.functions'] = function () {
+    return [
+        'js' => 'get_js',
+        'path' => 'expand_path',
+        'prettify' => 'bs_prettify',
+    ];
+};
+
+$app['template.filters'] = function () {
+    return [
+        'json_decode' => 'json_decode',
+    ];
+};
+
+$app['template.globals'] = function () use ($app) {
+    return [
+        '_base' => 'base/main.html',
+        'app' => $app,
+        'global_config' => $app['config']->getPool('global'),
+        'self' => $app['request']->getScriptName(),
+        'style' => Braskit\Style::getObject(),
+    ];
+};
+
 $app['thumb.method'] = 'gd';
 
 $app['thumb.quality'] = 75;
@@ -239,14 +263,24 @@ $app['session'] = function () use ($app) {
 };
 
 $app['template'] = function () use ($app) {
-    return $app['template.creator']($app['template.loader']);
+    return $app['template_creator']($app['template_loader']);
 };
 
-$app['template.chain'] = $app->factory(function () {
+$app['template_chain'] = $app->factory(function () {
     return new Twig_Loader_Chain();
 });
 
-$app['template.loader'] = function () use ($app) {
+$app['template_extension'] = function () use ($app) {
+    $extension = new Braskit\Template\TwigExtension();
+
+    $extension->setFunctions($app['template.functions']);
+    $extension->setFilters($app['template.filters']);
+    $extension->setGlobals($app['template.globals']);
+
+    return $extension;
+};
+
+$app['template_loader'] = function () use ($app) {
     return new Braskit\Template\TwigLoader($app['path.tpldir']);
 };
 
@@ -324,13 +358,13 @@ $app['config.service_object'] = function () use ($app) {
 // Misc
 //
 
-$app['template.creator'] = $app->protect(function ($loader) use ($app) {
+$app['template_creator'] = $app->protect(function ($loader) use ($app) {
     $twig = new Twig_Environment($loader, array(
         'cache' => $app['template.debug'] ? false : $app['path.cache.tpl'],
         'debug' => $app['template.debug'],
     ));
 
-    $twig->addExtension(new Braskit\Template\TwigExtension());
+    $twig->addExtension($app['template_extension']);
 
     // Load debugger
     if ($app['template.debug']) {
