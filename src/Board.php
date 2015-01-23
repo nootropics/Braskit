@@ -113,7 +113,7 @@ class Board {
         $app['db']->createBoard($this->board, $longname);
 
         // create folders
-        foreach (array('', '/res', '/src', '/thumb') as $folder) {
+        foreach (array('', '/src', '/thumb') as $folder) {
             $folder = $this->board.$folder;
 
             if ($check_folder && !@mkdir("$this->root/$folder"))
@@ -357,93 +357,10 @@ class Board {
         return count($posts);
     }
 
-    /**
-     * Rebuild all indexes and threads
-     */
-    public function rebuildAll() {
-        $this->rebuildIndexes();
-        $this->rebuildThreads();
-    }
-
-    /**
-     * Rebuild index caches
-     */
-    public function rebuildIndexes() {
-        $threads = $this->getIndexThreads();
-        $maxpage = $this->getMaxPage($threads);
-        $threads_per_page = $this->config->get('threads_per_page');
-
-        $num = 0;
-
-        $page = array_splice($threads, 0, $threads_per_page);
-        do {
-            $file = !$num ? 'index.html' : $num.'.html';
-
-            $html = $this->render('page.html', array(
-                'board' => $this,
-                'maxpage' => $maxpage,
-                'static' => true,
-                'threads' => $page,
-                'pagenum' => $num,
-            ));
-
-            $this->write($file, $html);
-            $num++;
-        } while ($page = array_splice($threads, 0, $threads_per_page));
-
-        // delete old caches
-        while ($this->fileExists($num.'.html')) {
-            $this->unlink($num.'.html');
-            $num++;
-        }
-    }
-
     public function postsInThread($id, $admin = false) {
         global $app;
 
         return $app['db']->postsInThreadByID($this->board, $id, $admin);
-    }
-
-    /**
-     * Rebuilds a thread cache
-     */
-    public function rebuildThread($id) {
-        $posts = $this->postsInThread($id);
-
-        $html = $this->render('thread.html', array(
-            'board' => $this,
-            'posts' => $posts,
-            'static' => true,
-            'thread' => $id,
-        ));
-
-        $this->write(sprintf('res/%d.html', $id), $html);
-    }
-
-    /**
-     * Rebuild all threads
-     */
-    public function rebuildThreads() {
-        $threads = $this->getAllThreads();
-
-        foreach ($threads as $thread)
-            $this->rebuildThread($thread->id);
-    }
-
-    /**
-     * Write a file to a board directory
-     */
-    public function write($filename, $contents) {
-        global $app;
-        static $file;
-
-        if (!isset($file)) {
-            $file = $app['file_utils'];
-        }
-
-        $filename = sprintf('%s/%s', $this->board, $filename);
-
-        return $file->write($filename, $contents);
     }
 
     public function unlink($filename) {

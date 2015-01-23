@@ -69,7 +69,6 @@ class Delete extends View {
         }
 
         $deleted_posts = array();
-        $rebuild_queue = array();
         $error = false;
 
         foreach ($ids as $id) {
@@ -85,11 +84,6 @@ class Delete extends View {
                 foreach ($posts as $post) {
                     // mark post id as deleted
                     $deleted_posts[$post->id] = true;
-
-                    if ($post->parent) {
-                        // Collect threads to be rebuilt
-                        $rebuild_queue[$post->parent] = true;
-                    }
                 }
             } catch (\PDOException $e) {
                 $err = $e->getCode();
@@ -102,14 +96,6 @@ class Delete extends View {
                 }
             }
         }
-
-        // Rebuild threads
-        foreach ($rebuild_queue as $id) {
-            $board->rebuildThread($id);
-        }
-
-        // Rebuild indexes
-        $board->rebuildIndexes();
 
         // Show an error if any posts had the incorrect password.
         if ($error) {

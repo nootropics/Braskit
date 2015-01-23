@@ -10,13 +10,13 @@ namespace Braskit\View;
 use Braskit\Board;
 use Braskit\View;
 
-class Thread extends View {
+class ThreadView extends View {
     public function get($app, $boardname, $id) {
-        $user = $app['auth']->authenticate();
+        $user = $app['auth']->authenticate(false);
 
         $board = new Board($boardname);
 
-        $posts = $board->postsInThread($id, true);
+        $posts = $board->postsInThread($id, (bool)$user);
 
         if (!$posts) {
             // thread doesn't exist
@@ -24,7 +24,7 @@ class Thread extends View {
         }
 
         return $this->response->setContent($board->render('thread.html', array(
-            'admin' => true,
+            'admin' => (bool)$user,
             'board' => $board,
             'posts' => $posts,
             'thread' => $id,

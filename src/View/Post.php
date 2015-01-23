@@ -214,9 +214,6 @@ class Post extends View {
         $app['dispatcher']->dispatch(PostEvent::POST_AFTER_INSERT, $event);
 
         if ($parent) {
-            // rebuild thread cache
-            $board->rebuildThread($post->parent);
-
             // bump the thread if we're not saging
             if (!$sage)
                 $board->bump($post->parent);
@@ -226,13 +223,8 @@ class Post extends View {
             // clear old threads
             $board->trim();
 
-            // build thread cache
-            $board->rebuildThread($post->id);
-
             $dest = sprintf('res/%d.html#%d', $post->id, $post->id);
         }
-
-        $board->rebuildIndexes();
 
         if ($board->config->get('auto_noko')) {
             // redirect to thread

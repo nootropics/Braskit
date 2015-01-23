@@ -10,15 +10,15 @@ namespace Braskit\View;
 use Braskit\Board;
 use Braskit\View;
 
-class Page extends View {
+class IndexView extends View {
     public function get($app, $boardname, $page = 0) {
-        $user = $app['auth']->authenticate();
+        $user = $app['auth']->authenticate(false);
 
         $board = new Board($boardname);
 
         $offset = $page * $board->config->get('threads_per_page');
 
-        $threads = $board->getIndexThreads($offset, true);
+        $threads = $board->getIndexThreads($offset, (bool)$user);
 
         // get number of pages for the page nav
         $maxpage = $board->getMaxPage($board->countThreads());
@@ -28,12 +28,12 @@ class Page extends View {
             return $this->redirect($board->path('', true));
         }
 
-        return $this->response->setContent($board->render('page.html', array(
-            'admin' => true,
+        return $this->response->setContent($board->render('board-index.html', [
+            'admin' => (bool)$user,
             'board' => $board,
             'maxpage' => $maxpage,
             'pagenum' => $page,
             'threads' => $threads,
-        )));
+        ]));
     }
 }

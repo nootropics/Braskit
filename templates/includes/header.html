@@ -11,11 +11,6 @@
     {% if admin %}
       [<a href="{{ path("manage", true) }}">Manage</a>]
       [<a href="{{ path("bans", true) }}">Bans</a>]
-
-      {% if board %}
-        [<a href="{{ board.path("rebuild", true) }}">Rebuild caches</a>]
-      {% endif %}
-
       [<a href="{{ path("logout", true) }}">Log out</a>]
       -
     {% endif %}
