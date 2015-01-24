@@ -116,8 +116,6 @@ CREATE TABLE /*_*/spam (
 
 CREATE VIEW /*_*/posts_view AS
     SELECT p.*,
-            to_char(p.timestamp, 'YY/MM/DD(Dy)HH24:MI') AS date,
-            EXTRACT(EPOCH FROM p.timestamp) AS unixtime,
             f.id AS fileid, f.file, f.md5, f.origname, f.shortname, f.filesize,
             f.prettysize, f.width, f.height, f.thumb, f.t_width, f.t_height,
             f.filedata
@@ -130,8 +128,6 @@ CREATE VIEW /*_*/posts_view AS
 -- don't use them.
 CREATE VIEW /*_*/posts_admin AS
     SELECT p.*,
-            to_char(p.timestamp, 'YY/MM/DD(Dy)HH24:MI') AS date,
-            EXTRACT(EPOCH FROM p.timestamp) AS unixtime,
             COUNT(b.*) <> 0 AS banned,
             (
                 SELECT array_to_json(array_agg(row_to_json(r)))
@@ -148,16 +144,6 @@ CREATE VIEW /*_*/posts_admin AS
         LEFT OUTER JOIN /*_*/files AS f
             ON (p.board = f.board AND p.id = f.postid)
         GROUP BY p.globalid, f.id;
-
--- Posts joined with the files table, simple as that!
-CREATE VIEW /*_*/posts_simple_view AS
-    SELECT p.*,
-            f.id AS fileid, f.file, f.md5, f.origname, f.shortname, f.filesize,
-            f.prettysize, f.width, f.height, f.thumb, f.t_width, f.t_height,
-            f.filedata
-        FROM /*_*/posts AS p
-        LEFT OUTER JOIN /*_*/files AS f
-            ON (p.board = f.board AND p.id = f.postid);
 
 
 --
@@ -195,12 +181,12 @@ CREATE TRIGGER /*_*/insert_post_trigger
 --
 
 CREATE FUNCTION /*_*/delete_post(b TEXT, i INTEGER, p TEXT)
-    RETURNS SETOF /*_*/posts_simple_view AS $$
+    RETURNS SETOF /*_*/posts_view AS $$
 DECLARE
     row RECORD;
 BEGIN
     FOR row IN
-        SELECT * FROM /*_*/posts_simple_view
+        SELECT * FROM /*_*/posts_view
             WHERE board = b AND (id = i OR parent = i)
             ORDER BY id ASC -- parent posts first
     LOOP
@@ -233,7 +219,7 @@ $$ LANGUAGE plpgsql;
 -- Delete old threads at any given offset, for any given board.
 -- Returns the posts being deleted.
 CREATE FUNCTION /*_*/trim_board(b TEXT, o INTEGER)
-    RETURNS SETOF /*_*/posts_simple_view AS $$
+    RETURNS SETOF /*_*/posts_view AS $$
 DECLARE
     row RECORD;
 BEGIN

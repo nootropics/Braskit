@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2013, 2014 Frank Usrs
+ * Copyright (C) 2013-2015 Frank Usrs
  *
  * See LICENSE for terms and conditions of use.
  */
@@ -12,7 +12,7 @@ class Post extends FileMetaData {
     public $id = 0;
     public $parent = 0;
     public $board = '';
-    public $timestamp = 0;
+    public $timestamp;
     public $lastbump = 0;
     public $ip = '127.0.0.2';
     public $name = '';
@@ -21,10 +21,13 @@ class Post extends FileMetaData {
     public $subject = '';
     public $comment = '';
     public $password = '';
-    public $date = '';
-    public $unixtime = 0;
     public $banned = false;
     public $reports = null;
-}
 
-/* vim: set ts=4 sw=4 sts=4 et: */
+    /**
+     * @return \DateTime
+     */
+    public function getDate() {
+        return new \DateTime($this->timestamp);
+    }
+}

@@ -64,6 +64,11 @@ $dict->add('max_kb', [
 	'type' => 'number',
 ]);
 
+$dict->add('date_format', [
+    'default' => 'Y-m-d H:i:s',
+    'type' => 'text',
+]);
+
 $dict->add('default_name', [
 	'default' => "Anonymous",
 	'type' => 'text',

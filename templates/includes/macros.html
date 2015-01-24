@@ -57,7 +57,7 @@
 				<span class="post-ip">(<a href="{{ path("IP/"~p.ip, true) }}">{{ p.ip|raw }}</a>)</span>
 			{% endif %}
 
-			<span class="post-date">{{ p.date|raw }}</span>
+			<span class="post-date">{{ p.getDate()|date(context.board.config.get("date_format")) }}</span>
 		</label>
 
 		{% spaceless %}
