@@ -30,13 +30,12 @@ class Main extends Router {
             "/$board_re/report" => 'Report',
 
             // Mod view
-            "/$board_re/(?:$num_re(?:\\.html)?|index\\.html)?" => 'Page',
-            "/$board_re/res/$num_re(?:\\.html)?" => 'Thread',
+            "/$board_re/(?:$num_re(?:\\.html)?|index\\.html)?" => 'IndexView',
+            "/$board_re/res/$num_re(?:\\.html)?" => 'ThreadView',
 
             // Mod board actions
             "/$board_re/ban" => 'Ban',
             "/$board_re/edit" => 'BoardEdit',
-            "/$board_re/rebuild" => 'Rebuild',
 
             // Config
             '/config/dict/(.*)' => 'ConfigDictView',

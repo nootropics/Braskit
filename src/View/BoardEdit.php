@@ -34,7 +34,6 @@ class BoardEdit extends View {
         $name = $param->get('name');
         $title = $param->get('title');
         $minlevel = $param->get('minlevel');
-        $rebuild = $param->get('rebuild');
 
         $board->editSettings($title, $minlevel);
 
@@ -43,9 +42,6 @@ class BoardEdit extends View {
         if ($name !== '' && $name !== (string)$board) {
             $board->rename($name);
         }
-
-        if ($rebuild)
-            $board->rebuildAll();
 
         // the board might have changes names
         return $this->redirect($board->path('edit', true));
