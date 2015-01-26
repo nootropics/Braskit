@@ -13,7 +13,7 @@ class Post extends FileMetaData {
     public $parent = 0;
     public $board = '';
     public $timestamp;
-    public $lastbump = 0;
+    public $lastbump;
     public $ip = '127.0.0.2';
     public $name = '';
     public $tripcode = '';

@@ -150,21 +150,37 @@ CREATE VIEW /*_*/posts_admin AS
 -- Post insertion magic
 --
 
--- Increment boards.lastid and set the post's ID to the updated value on INSERT.
 CREATE FUNCTION /*_*/insert_post_func() RETURNS trigger AS $$
 DECLARE
     updated_row RECORD;
+    parent_row RECORD;
 BEGIN
     -- Prevent race conditions
     LOCK TABLE /*_*/boards IN SHARE ROW EXCLUSIVE MODE;
 
+    -- Update the board table's post ID counter.
     UPDATE /*_*/boards
         SET lastid = lastid + 1
         WHERE name = NEW.board
-        RETURNING lastid
-        INTO updated_row;
+        RETURNING lastid INTO STRICT updated_row;
 
     NEW.id := updated_row.lastid;
+
+    IF NEW.lastbump IS NULL THEN
+        IF NEW.parent <> 0 THEN
+            -- Set the lastbump column to the parent post's on replies. This is
+            -- necessary for sorting purposes. Do we need to lock the table?
+            SELECT lastbump
+                INTO STRICT parent_row
+                FROM /*_*/posts
+                WHERE board = NEW.board AND id = NEW.parent;
+
+            NEW.lastbump := parent_row.lastbump;
+        ELSE
+            -- Set the lastbump to the timestamp value on new threads.
+            NEW.lastbump := NEW.timestamp;
+        END IF;
+    END IF;
 
     RETURN NEW;
 END;

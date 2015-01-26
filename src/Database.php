@@ -83,7 +83,7 @@ class Database {
     }
 
     public function insertPost($post) {
-        $sth = $this->dbh->prepare("INSERT INTO {$this->prefix}posts (parent, board, timestamp, lastbump, ip, name, tripcode, email, subject, comment, password) VALUES (:parent, :board, to_timestamp(:timestamp), to_timestamp(:timestamp), :ip, :name, :tripcode, :email, :subject, :comment, :password) RETURNING id");
+        $sth = $this->dbh->prepare("INSERT INTO {$this->prefix}posts (parent, board, timestamp, ip, name, tripcode, email, subject, comment, password) VALUES (:parent, :board, to_timestamp(:timestamp), :ip, :name, :tripcode, :email, :subject, :comment, :password) RETURNING id");
 
         $sth->bindParam(':parent', $post->parent, PDO::PARAM_INT);
         $sth->bindParam(':board', $post->board, PDO::PARAM_STR);
