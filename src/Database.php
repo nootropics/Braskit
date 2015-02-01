@@ -103,8 +103,13 @@ class Database {
     }
 
     public function bumpThreadByID($board, $id) {
-        $sth = $this->dbh->prepare("UPDATE {$this->prefix}posts SET lastbump = to_timestamp(?) WHERE id = ?");
-        $sth->execute(array(time(), $id));
+        $sth = $this->dbh->prepare("UPDATE {$this->prefix}posts SET lastbump = to_timestamp(:time) WHERE board = :board AND (id = :id OR parent = :id)");
+
+        $sth->bindValue(':board', $board, PDO::PARAM_STR);
+        $sth->bindValue(':id', $id, PDO::PARAM_INT);
+        $sth->bindValue(':time', time(), PDO::PARAM_INT);
+
+        $sth->execute();
     }
 
     public function countThreads($board) {
@@ -191,7 +196,7 @@ class Database {
     }
 
     public function postByMD5($board, $md5) {
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_simple_view WHERE board = :board AND md5 = :md5 LIMIT 1");
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND md5 = :md5 LIMIT 1");
         $sth->bindParam(':board', $board, PDO::PARAM_STR);
         $sth->bindParam(':md5', $md5, PDO::PARAM_STR);
         $sth->execute();
@@ -387,7 +392,7 @@ class Database {
     }
 
     public function checkImageFlood($ip, $max) {
-        $sth = $this->dbh->prepare("SELECT 1 FROM {$this->prefix}posts_simple_view WHERE fileid IS NOT NULL AND ip = :ip AND timestamp > to_timestamp(:max)");
+        $sth = $this->dbh->prepare("SELECT 1 FROM {$this->prefix}posts_view WHERE fileid IS NOT NULL AND ip = :ip AND timestamp > to_timestamp(:max)");
         $sth->bindParam(':ip', $ip, PDO::PARAM_STR);
         $sth->bindParam(':max', $max, PDO::PARAM_INT);
         $sth->execute();

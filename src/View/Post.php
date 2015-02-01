@@ -204,6 +204,13 @@ class Post extends View {
         // Insert the file
         $file->insert($post);
 
+        if ($parent && !$sage) {
+            $board->bump($post->parent);
+        } elseif (!$parent) {
+            // clear old threads
+            $board->trim();
+        }
+
         // commit changes to database
         $app['dbh']->commit();
 
@@ -214,15 +221,8 @@ class Post extends View {
         $app['dispatcher']->dispatch(PostEvent::POST_AFTER_INSERT, $event);
 
         if ($parent) {
-            // bump the thread if we're not saging
-            if (!$sage)
-                $board->bump($post->parent);
-
             $dest = sprintf('res/%d.html#%d', $parent, $post->id);
         } else {
-            // clear old threads
-            $board->trim();
-
             $dest = sprintf('res/%d.html#%d', $post->id, $post->id);
         }
 
