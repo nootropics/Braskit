@@ -111,7 +111,7 @@ CREATE TABLE /*_*/spam (
 
 
 --
--- Post views
+-- Post view
 --
 
 CREATE VIEW /*_*/posts_view AS
@@ -122,28 +122,6 @@ CREATE VIEW /*_*/posts_view AS
         FROM /*_*/posts AS p
         LEFT OUTER JOIN /*_*/files AS f
             ON (p.board = f.board AND p.id = f.postid);
-
--- Same as above, except with reports as JSON and whether or not the IP is
--- banned as a boolean value. Nested views are apparently a bad thing, so we
--- don't use them.
-CREATE VIEW /*_*/posts_admin AS
-    SELECT p.*,
-            COUNT(b.*) <> 0 AS banned,
-            (
-                SELECT array_to_json(array_agg(row_to_json(r)))
-                    FROM /*_*/reports AS r
-                    WHERE p.id = r.postid
-                        AND p.board = r.board
-            ) as reports,
-            f.id AS fileid, f.file, f.md5, f.origname, f.shortname, f.filesize,
-            f.prettysize, f.width, f.height, f.thumb, f.t_width, f.t_height,
-            f.filedata
-        FROM /*_*/posts AS p
-        LEFT OUTER JOIN /*_*/bans AS b
-            ON (b.ip >>= p.ip)
-        LEFT OUTER JOIN /*_*/files AS f
-            ON (p.board = f.board AND p.id = f.postid)
-        GROUP BY p.globalid, f.id;
 
 
 --

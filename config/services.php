@@ -65,9 +65,7 @@ $app['template.functions'] = function () {
 };
 
 $app['template.filters'] = function () {
-    return [
-        'json_decode' => 'json_decode',
-    ];
+    return [];
 };
 
 $app['template.globals'] = function () use ($app) {

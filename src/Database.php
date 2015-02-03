@@ -44,22 +44,13 @@ class Database {
         $this->dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
     }
 
-    protected function getView($admin) {
-        if ($admin)
-            return 'posts_admin';
-
-        return 'posts_view';
-    }
-
 
     //
     // Post functions
     //
 
-    public function postByID($board, $id, $admin = false) {
-        $view = $this->getView($admin);
-
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}{$view} WHERE board = :board AND id = :id");
+    public function postByID($board, $id) {
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND id = :id");
 
         $sth->bindParam(':board', $board);
         $sth->bindParam(':id', $id);
@@ -119,19 +110,15 @@ class Database {
         return $sth->fetchColumn();
     }
 
-    public function allThreads($board, $admin = false) {
-        $view = $this->getView($admin);
-
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}{$view} WHERE board = ? AND parent = 0 ORDER BY lastbump DESC");
+    public function allThreads($board) {
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = ? AND parent = 0 ORDER BY lastbump DESC");
         $sth->execute(array($board));
 
         return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
     }
 
-    public function getThreads($board, $offset, $limit, $admin = false) {
-        $view = $this->getView($admin);
-
-        $sql = "SELECT * FROM {$this->prefix}{$view} WHERE board = :board AND parent = 0 ORDER BY lastbump DESC";
+    public function getThreads($board, $offset, $limit) {
+        $sql = "SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND parent = 0 ORDER BY lastbump DESC";
 
         if ($limit)
             $sql .= ' LIMIT :limit OFFSET :offset';
@@ -149,13 +136,11 @@ class Database {
         return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
     }
 
-    public function postsInThreadByID($board, $id, $admin = false) {
+    public function postsInThreadByID($board, $id) {
         if (!$id)
             return false;
 
-        $view = $this->getView($admin);
-
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}{$view} WHERE board = :board AND (id = :id OR parent = :id) ORDER BY id ASC");
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND (id = :id OR parent = :id) ORDER BY id ASC");
 
         $sth->bindParam(':board', $board, PDO::PARAM_STR);
         $sth->bindParam(':id', $id, PDO::PARAM_INT);
@@ -176,10 +161,8 @@ class Database {
         return $sth->fetchColumn();
     }
 
-    public function latestRepliesInThreadByID($board, $id, $limit, $admin = false) {
-        $view = $this->getView($admin);
-
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}{$view} WHERE board = :board AND parent = :id ORDER BY id DESC LIMIT :limit");
+    public function latestRepliesInThreadByID($board, $id, $limit) {
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND parent = :id ORDER BY id DESC LIMIT :limit");
         $sth->bindParam(':board', $board);
         $sth->bindParam(':id', $id, PDO::PARAM_INT);
         $sth->bindParam(':limit', $limit, PDO::PARAM_INT);
@@ -259,13 +242,11 @@ class Database {
     // Cross-board functions
     //
 
-    public function getLatestPosts($limit, $admin = false) {
+    public function getLatestPosts($limit) {
         if ($limit < 1)
             $limit = 1;
 
-        $view = $this->getView($admin);
-
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}{$view} ORDER BY id DESC LIMIT :limit");
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view ORDER BY id DESC LIMIT :limit");
         $sth->bindParam(':limit', $limit, PDO::PARAM_INT);
         $sth->execute();
 

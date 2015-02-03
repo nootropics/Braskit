@@ -178,7 +178,7 @@ class Post extends View {
         $board->checkFlood($time, $ip, $formatted_comment, $file->exists);
 
         // Set up database values
-        $post = new PostModel($parent);
+        $post = new PostModel();
 
         $post->board = (string)$board;
         $post->parent = $parent;

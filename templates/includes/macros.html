@@ -109,16 +109,18 @@
 {% endmacro %}
 
 {% macro reports(reports) %}
-  <div class="post-reports">
-    <ul>
-      {% for report in reports|json_decode(true) %}
-        <li>
-          Reported by <a href="{{ path("ip/"~report.ip, true) }}">{{ report.ip }}</a>: <strong class="reason">{{ report.reason }}</strong>
-          <span class="dismiss">(<a href="{{ path("reports", {"dismiss": report.id}) }}" title="Dismiss">Dismiss</a>)</span>
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
+  {% if reports %}
+    <div class="post-reports">
+      <ul>
+        {% for report in reports %}
+          <li>
+            Reported by <a href="{{ path("ip/"~report.ip, true) }}">{{ report.ip }}</a>: <strong class="reason">{{ report.reason }}</strong>
+            <span class="dismiss">(<a href="{{ path("reports", {"dismiss": report.id}) }}" title="Dismiss">Dismiss</a>)</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
 {% endmacro %}
 
 {% macro body(context, p) %}
@@ -140,8 +142,8 @@
         </p>
       {% endif %}
 
-      {% if p.reports %}
-        {{ m.reports(p.reports) }}
+      {% if context.admin %}
+        {{ m.reports(p.getReports()) }}
       {% endif %}
     </footer>
   </div>
