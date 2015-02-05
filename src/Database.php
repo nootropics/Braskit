@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2013, 2014 Frank Usrs
+ * Copyright (C) 2013-2015 Frank Usrs
  *
  * See LICENSE for terms and conditions of use.
  */
@@ -103,39 +103,6 @@ class Database {
         $sth->execute();
     }
 
-    public function countThreads($board) {
-        $sth = $this->dbh->prepare("SELECT COUNT(*) FROM {$this->prefix}posts WHERE board = ? AND parent = 0");
-        $sth->execute(array($board));
-
-        return $sth->fetchColumn();
-    }
-
-    public function allThreads($board) {
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = ? AND parent = 0 ORDER BY lastbump DESC");
-        $sth->execute(array($board));
-
-        return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
-    }
-
-    public function getThreads($board, $offset, $limit) {
-        $sql = "SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND parent = 0 ORDER BY lastbump DESC";
-
-        if ($limit)
-            $sql .= ' LIMIT :limit OFFSET :offset';
-
-        $sth = $this->dbh->prepare($sql);
-        $sth->bindParam(':board', $board);
-
-        if ($limit) {
-            $sth->bindParam(':limit', $limit, PDO::PARAM_INT);
-            $sth->bindParam(':offset', $offset, PDO::PARAM_INT);
-        }
-
-        $sth->execute();
-
-        return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
-    }
-
     public function postsInThreadByID($board, $id) {
         if (!$id)
             return false;
@@ -148,34 +115,6 @@ class Database {
         $sth->execute();
 
         return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
-    }
-
-    public function countPostsInThread($board, $id) {
-        $sth = $this->dbh->prepare("SELECT COUNT(*) FROM {$this->prefix}posts WHERE board = :board AND (id = :id OR parent = :id)");
-
-        $sth->bindParam(':board', $board);
-        $sth->bindParam(':id', $id);
-
-        $sth->execute();
-
-        return $sth->fetchColumn();
-    }
-
-    public function latestRepliesInThreadByID($board, $id, $limit) {
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND parent = :id ORDER BY id DESC LIMIT :limit");
-        $sth->bindParam(':board', $board);
-        $sth->bindParam(':id', $id, PDO::PARAM_INT);
-        $sth->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $sth->execute();
-
-        $posts = $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
-
-        if ($posts) {
-            // get the replies in the right order
-            $posts = array_reverse($posts);
-        }
-
-        return $posts;
     }
 
     public function postByMD5($board, $md5) {

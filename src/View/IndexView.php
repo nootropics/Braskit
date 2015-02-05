@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (C) 2013, 2014 Frank Usrs
+ * Copyright (C) 2013-2015 Frank Usrs
  *
  * See LICENSE for terms and conditions of use.
  */
@@ -8,6 +8,7 @@
 namespace Braskit\View;
 
 use Braskit\Board;
+use Braskit\ThreadIndex;
 use Braskit\View;
 
 class IndexView extends View {
@@ -16,12 +17,14 @@ class IndexView extends View {
 
         $board = new Board($boardname);
 
-        $offset = $page * $board->config->get('threads_per_page');
+        $index = new ThreadIndex($app['dbh'], $app['db.prefix']);
 
-        $threads = $board->getIndexThreads($offset, (bool)$user);
+        $index->setBoard($board);
+        $index->setPage($page);
+        $index->setMaxThreads($board->config->get('threads_per_page'));
+        $index->setMaxReplies($board->config->get('replies_shown'));
 
-        // get number of pages for the page nav
-        $maxpage = $board->getMaxPage($board->countThreads());
+        $threads = $index->getThreads();
 
         if ($page && !count($threads)) {
             // no threads on this page, redirect to page 0
@@ -31,7 +34,7 @@ class IndexView extends View {
         return $this->response->setContent($board->render('board-index.html', [
             'admin' => (bool)$user,
             'board' => $board,
-            'maxpage' => $maxpage,
+            'maxpage' => $index->getPageCount() - 1,
             'pagenum' => $page,
             'threads' => $threads,
         ]));
