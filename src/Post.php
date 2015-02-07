@@ -23,37 +23,16 @@ class Post extends FileMetaData {
     public $password = '';
     public $banned = false;
 
-    protected $attributes = [];
+    /**
+     * @var PostService
+     */
+    protected $service;
 
     /**
      * @param $attributes array|null
      */
-    public function __construct(array $attributes = null) {
-        if ($attributes) {
-            $this->setAttributes($attributes);
-        }
-    }
-
-    /**
-     * Retrieves an attribute.
-     *
-     * Attributes are just a way to set various things needed throughout the
-     * lifetime of the post object without having an insanely long constructor
-     * signature.
-     *
-     * @return mixed|null The attribute, or NULL if it wasn't set.
-     */
-    public function getAttribute($attr) {
-        if (isset($this->attributes[$attr])) {
-            return $this->attributes[$attr];
-        }
-    }
-
-    /**
-     * Sets an attribute.
-     */
-    public function setAttributes(array $attributes) {
-        $this->attributes = $attributes + $this->attributes;
+    public function __construct(PostService $service = null) {
+        $this->service = $service;
     }
 
     /**
@@ -64,20 +43,48 @@ class Post extends FileMetaData {
     }
 
     /**
-     * Retrieve all reports
+     * Retrieve all files associated with the post.
      *
-     * @todo Replace query with a report service or something instead.
+     * @return FileMetaData[]
+     */
+    public function getFiles() {
+        $this->requireService();
+
+        $sth = $this->service->getFileSth();
+
+        $sth->bindValue(':board', $this->board, \PDO::PARAM_STR);
+        $sth->bindValue(':id', $this->id, \PDO::PARAM_INT);
+
+        $sth->execute();
+
+        return $sth->fetchAll(\PDO::FETCH_CLASS, 'Braskit\FileMetaData');
+    }
+
+    /**
+     * Retrieve all reports associated with the post.
+     *
+     * @return Report[]
      */
     public function getReports() {
-        $sth = $this->getAttribute('report_sth');
+        $this->requireService();
 
-        if ($sth) {
-            $sth->bindValue(':board', $this->board, \PDO::PARAM_STR);
-            $sth->bindValue(':id', $this->id, \PDO::PARAM_INT);
+        $sth = $this->service->getReportSth();
 
-            $sth->execute();
+        $sth->bindValue(':board', $this->board, \PDO::PARAM_STR);
+        $sth->bindValue(':id', $this->id, \PDO::PARAM_INT);
 
-            return $sth->fetchAll(\PDO::FETCH_CLASS, 'Braskit\Report');
+        $sth->execute();
+
+        return $sth->fetchAll(\PDO::FETCH_CLASS, 'Braskit\Report');
+    }
+
+    /**
+     * @throws \RuntimeException if no service is defined for the board.
+     */
+    private function requireService() {
+        if (!$this->service) {
+            // lol wording
+            throw new \RuntimeException('The board object has no service');
         }
     }
 }

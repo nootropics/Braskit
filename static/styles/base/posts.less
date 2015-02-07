@@ -97,9 +97,34 @@
     margin-left: 0.5em;
   }
 
-  .thumb {
+  .thumb.thumb-single {
     float: left;
     margin: 2px 20px;
+  }
+
+  .thumb-grid {
+    .clear-fix;
+    clear: both;
+    margin: 2px 10px;
+
+    .item {
+      background: @block-background-color;
+      float: left;
+      margin: 10px;
+      padding: 0 1px 1px;
+    }
+
+    .thumb-info {
+      .normalize-block;
+      font-family: @sans-serif;
+      font-size: smaller;
+      padding: 2px;
+    }
+
+    .thumb {
+      .normalize-block;
+      display: block;
+    }
   }
 
   .no-thumb {

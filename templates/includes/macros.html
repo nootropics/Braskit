@@ -8,13 +8,15 @@
 	<article class="post thread" id="{{ posts[0].id }}">
 		{% for p in posts %}
 			{% if not p.parent %}
-        {% if p.file %}
-          {{ fileinfo(context, p) }}
-          {{ thumb(context, p) }}
+        {% set files = p.getFiles() %}
+
+        {% if files|length == 1 %}
+          {{ fileinfo(context, files[0]) }}
+          {{ thumb(context, files[0]) }}
         {% endif %}
 
-        {{ head(context, p) }}
-        {{ body(context, p) }}
+        {{ head(context, p, files) }}
+        {{ body(context, p, files) }}
 
 				{% if p.omitted %}
 					<p class="post-omitted">{{ p.omitted|raw }} posts omitted. Click Reply to view.</p>
@@ -84,28 +86,51 @@
 	</h2>
 {% endmacro %}
 
-{% macro fileinfo(context, p) %}
+{% macro fileinfo(context, file) %}
 	<p class="post-file">
-		File: <a href="{{ context.board.path("src/"~p.file) }}" target="_blank">{{ p.file }}</a>
+		File: <a href="{{ context.board.path("src/"~file.file) }}" target="_blank">{{ file.file }}</a>
 		<em>(
-			{{- p.prettysize|raw }}, {{ p.width|raw }}x{{ p.height|raw -}}
-			{%- if context.thread and p.origname %},
-				<span title="{{ p.origname }}">{{ p.shortname }}</span>
+			{{- file.prettysize|raw }}, {{ file.width|raw }}x{{ file.height|raw -}}
+			{%- if context.thread and file.origname %},
+				<span title="{{ file.origname }}">{{ file.shortname }}</span>
 			{%- endif -%}
 		)</em>
 	</p>
 {% endmacro %}
 
+{# Macro for single thumbnail #}
 {% macro thumb(context, p) %}
 	{% import _self as m %}
 
-	{% if p.t_width and p.t_height %}
-		<a href="{{ context.board.path("src/"~p.file) }}" class="thumb-link" target="_blank">
-			<img src="{{ context.board.path("thumb/"~p.thumb) }}" alt="" class="thumb" width="{{ p.t_width|raw }}" height="{{ p.t_height|raw }}">
-		</a>
-	{% else %}
-		<a href="{{ context.board.path("src/"~p.file) }}" class="no-thumb">(No thumbnail)</a>
-	{% endif %}
+  {% if p.t_width and p.t_height %}
+    <a href="{{ context.board.path("src/"~p.file) }}" class="thumb-link" target="_blank">
+      <img src="{{ context.board.path("thumb/"~p.thumb) }}" alt="" class="thumb thumb-single" width="{{ p.t_width|raw }}" height="{{ p.t_height|raw }}">
+    </a>
+  {% else %}
+    <a href="{{ context.board.path("src/"~p.file) }}" class="no-thumb">(No thumbnail)</a>
+  {% endif %}
+{% endmacro %}
+
+{# Macro for thumbnail grid #}
+{% macro thumbgrid(context, files) %}
+  <div class="thumb-grid">
+    {% for file in files %}
+      <div class="item">
+        <p class="thumb-info">
+          <label>
+            <input type="checkbox" name="fileid[]" value="{{ file.id }}">
+            {{ file.shortname }} ({{ file.width|raw }}x{{ file.height|raw }})
+          </label>
+        </p>
+
+        <p class="thumb">
+          <a href="{{ context.board.path("src/"~file.file) }}" class="thumb-link" target="_blank">
+            <img src="{{ context.board.path("thumb/"~file.thumb) }}" alt="" class="thumb thumb-multiple" width="{{ file.t_width|raw }}" height="{{ file.t_height|raw }}">
+          </a>
+        </p>
+      </div>
+    {% endfor %}
+  </div>
 {% endmacro %}
 
 {% macro reports(reports) %}
@@ -123,10 +148,14 @@
   {% endif %}
 {% endmacro %}
 
-{% macro body(context, p) %}
+{% macro body(context, p, files=[]) %}
 	{% import _self as m %}
 
   <div class="post-body">
+    {% if files and files|length > 1 %}
+      {{ m.thumbgrid(context, files) }}
+    {% endif %}
+
     <div class="post-comment">
       {{- p.comment|raw -}}
     </div>
@@ -163,9 +192,13 @@
 		<div class="reply-inner">
 			{{ m.head(context, p) }}
 
-			{% if p.file %}
-				{{ m.fileinfo(context, p) }}
-				{{ m.thumb(context, p) }}
+      {% set files = p.getFiles() %}
+
+			{% if files|length == 1%}
+				{{ m.fileinfo(context, files[0]) }}
+				{{ m.thumb(context, files[0]) }}
+      {% elseif files|length > 1 %}
+        {{ m.thumbgrid(context, files) }}
 			{% endif %}
 
 			{{ m.body(context, p) }}

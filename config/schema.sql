@@ -111,20 +111,6 @@ CREATE TABLE /*_*/spam (
 
 
 --
--- Post view
---
-
-CREATE VIEW /*_*/posts_view AS
-    SELECT p.*,
-            f.id AS fileid, f.file, f.md5, f.origname, f.shortname, f.filesize,
-            f.prettysize, f.width, f.height, f.thumb, f.t_width, f.t_height,
-            f.filedata
-        FROM /*_*/posts AS p
-        LEFT OUTER JOIN /*_*/files AS f
-            ON (p.board = f.board AND p.id = f.postid);
-
-
---
 -- Post insertion magic
 --
 

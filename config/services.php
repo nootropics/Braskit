@@ -197,7 +197,7 @@ $app['csrf'] = function () use ($app) {
 };
 
 $app['db'] = function () use ($app) {
-    return new Braskit\Database($app['dbh'], $app['db.prefix']);
+    return new Braskit\Database($app['dbh'], $app['db.prefix'], new Braskit\PostService($app['dbh'], $app['db.prefix']));
 };
 
 $app['dbh'] = function () use ($app) {

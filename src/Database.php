@@ -12,10 +12,12 @@ use PDO;
 class Database {
     protected $dbh;
     protected $prefix;
+    protected $postService;
 
-    public function __construct(PDO $dbh, $prefix) {
+    public function __construct(PDO $dbh, $prefix, PostService $service) {
         $this->dbh = $dbh;
         $this->prefix = $prefix;
+        $this->postService = $service;
     }
 
 
@@ -50,14 +52,14 @@ class Database {
     //
 
     public function postByID($board, $id) {
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND id = :id");
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts WHERE board = :board AND id = :id");
 
         $sth->bindParam(':board', $board);
         $sth->bindParam(':id', $id);
 
         $sth->execute();
 
-        $sth->setFetchMode(PDO::FETCH_CLASS, 'Braskit\\Post');
+        $sth->setFetchMode(PDO::FETCH_CLASS, 'Braskit\\Post', [$this->postService]);
 
         return $sth->fetch();
     }
@@ -107,25 +109,32 @@ class Database {
         if (!$id)
             return false;
 
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND (id = :id OR parent = :id) ORDER BY id ASC");
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts WHERE board = :board AND (id = :id OR parent = :id) ORDER BY id ASC");
 
         $sth->bindParam(':board', $board, PDO::PARAM_STR);
         $sth->bindParam(':id', $id, PDO::PARAM_INT);
 
         $sth->execute();
 
-        return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
+        return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post', [$this->postService]);
     }
 
+    /**
+     * @todo
+     */
     public function postByMD5($board, $md5) {
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view WHERE board = :board AND md5 = :md5 LIMIT 1");
+        /*
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts WHERE board = :board AND md5 = :md5 LIMIT 1");
         $sth->bindParam(':board', $board, PDO::PARAM_STR);
         $sth->bindParam(':md5', $md5, PDO::PARAM_STR);
         $sth->execute();
 
-        $sth->setFetchMode(PDO::FETCH_CLASS, 'Braskit\\Post');
+        $sth->setFetchMode(PDO::FETCH_CLASS, 'Braskit\\Post', [$this->postService]);
 
         return $sth->fetch();
+        */
+
+        return false;
     }
 
     public function deletePostByID($board, $id, $password = null) {
@@ -185,11 +194,11 @@ class Database {
         if ($limit < 1)
             $limit = 1;
 
-        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts_view ORDER BY id DESC LIMIT :limit");
+        $sth = $this->dbh->prepare("SELECT * FROM {$this->prefix}posts ORDER BY id DESC LIMIT :limit");
         $sth->bindParam(':limit', $limit, PDO::PARAM_INT);
         $sth->execute();
 
-        return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post');
+        return $sth->fetchAll(PDO::FETCH_CLASS, 'Braskit\\Post', [$this->postService]);
     }
 
 
@@ -311,13 +320,20 @@ class Database {
         return (bool)$sth->fetchColumn();
     }
 
+    /**
+     * @todo
+     */
     public function checkImageFlood($ip, $max) {
+        /*
         $sth = $this->dbh->prepare("SELECT 1 FROM {$this->prefix}posts_view WHERE fileid IS NOT NULL AND ip = :ip AND timestamp > to_timestamp(:max)");
         $sth->bindParam(':ip', $ip, PDO::PARAM_STR);
         $sth->bindParam(':max', $max, PDO::PARAM_INT);
         $sth->execute();
 
         return (bool)$sth->fetchColumn();
+        */
+
+        return false;
     }
 
 

@@ -65,6 +65,7 @@ class ThreadIndex {
     public function __construct(\PDO $dbh, $prefix = '') {
         $this->dbh = $dbh;
         $this->prefix = $prefix;
+        $this->postService = new PostService($dbh, $prefix);
     }
 
     /**
@@ -172,11 +173,11 @@ class ThreadIndex {
     protected function initialiseThreadIndex() {
         // query for selecting threads
         $threadSth = $this->getThreadSth();
-        $threadSth->setFetchMode(\PDO::FETCH_CLASS, 'Braskit\Post');
+        $threadSth->setFetchMode(\PDO::FETCH_CLASS, 'Braskit\Post', [$this->postService]);
 
         // query for selecting replies
         $replySth = $this->getReplySth();
-        $replySth->setFetchMode(\PDO::FETCH_CLASS, 'Braskit\Post');
+        $replySth->setFetchMode(\PDO::FETCH_CLASS, 'Braskit\Post', [$this->postService]);
 
         $threads = [];
 
@@ -245,7 +246,7 @@ class ThreadIndex {
                 ELSE
                     NULL
                 END AS omitted
-                FROM {$this->prefix}posts_view AS p
+                FROM {$this->prefix}posts AS p
                 WHERE
                     CASE WHEN :board::text IS NOT NULL THEN
                         board = :board AND parent = 0
@@ -284,7 +285,7 @@ class ThreadIndex {
         $sth = $this->dbh->prepare("
             SELECT * FROM (
                 SELECT * FROM
-                    {$this->prefix}posts_view
+                    {$this->prefix}posts
                     WHERE board = :board AND parent = :parent
                     ORDER BY id DESC
                     LIMIT :limit
