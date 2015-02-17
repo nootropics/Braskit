@@ -5,6 +5,10 @@
  * See LICENSE for terms and conditions of use.
  */
 
+/**
+ * @todo Make all functions independent of global state.
+ */
+
 use Braskit\Error;
 
 if (!function_exists('hash_equals')) {
@@ -198,9 +202,18 @@ function length($str) {
     return strlen($str);
 }
 
-function make_size($size, $base2 = false) {
-    if (!$size)
+/**
+ * Formats a file size to make it human-readable.
+ *
+ * @param int $size The file size.
+ * @param boolean $base2 Use binary counting/suffixes (default to false).
+ *
+ * @return string
+ */
+function bs_format_size($size, $base2 = false) {
+    if (!$size) {
         return '0 B';
+    }
 
     if ($base2) {
         $n = 1024;
@@ -214,28 +227,57 @@ function make_size($size, $base2 = false) {
         if ($size >= pow($n, $i) && $size < pow($n, $i + 1)) {
             $unit = $s[$i];
             $number = round($size / pow($n, $i), 2);
+
             return sprintf('%s %s', $number, $unit);
         }
     }
 
     $unit = $s[4];
     $number = round($size / pow($n, 4), 2);
+
     return sprintf('%s %s', $number, $unit);
 }
 
-function shorten_filename($filename) {
-    $info = pathinfo($filename);
+/**
+ * Truncates a filename.
+ *
+ * If the specified filename is longer than $max_length, the basename (filename
+ * without directory or extension) will be shortened, have the ellipsis text
+ * appended and finally have the extension appended.
+ *
+ * @param string $filename The filename.
+ * @param int $max_length
+ * @param string $ellipsis The text which indicates that a filename has been
+ *                         truncated.
+ *
+ * @todo Do something about file extensions (they aren't truncated).
+ *
+ * @return string
+ */
+function bs_shorten_filename($filename, $max_length = 25, $ellipsis = '(…)') {
+    if ($max_length < 1) {
+        throw new \RuntimeException('Max length must be above zero');
+    }
 
-    // short enough
-    if (length($info['basename']) <= 25)
+    // pathinfo() is one of those scary functions that alter their behaviour
+    // based on global state such as locale, etc. Let's just use regex instead.
+    preg_match('#^(?:.*[/\\\\])?(.*?)((?:\\.[^.]+?)?)$#', $filename, $matches);
+
+    list (/*$match*/, $basename, $extension) = $matches;
+
+    if (length($basename) <= $max_length) {
+        // short enough
         return $filename;
+    }
 
     // cut basename while preserving UTF-8 if possible
-    $short = !ctype_digit($info['basename']) && extension_loaded('mbstring')
-        ? mb_substr($info['basename'], 0, 25, 'UTF-8')
-        : substr($info['basename'], 0, 25);
+    if (!ctype_digit($basename) && extension_loaded('mbstring')) {
+        $short = mb_substr($basename, 0, $max_length, 'UTF-8');
+    } else {
+        $short = substr($basename, 0, $max_length);
+    }
 
-    return sprintf('%s(...).%s', $short, $info['extension']);
+    return $short.$ellipsis.$extension;
 }
 
 /**

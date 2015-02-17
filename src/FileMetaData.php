@@ -15,9 +15,7 @@ class FileMetaData {
     public $width = 0;
     public $height = 0;
     public $size = 0;
-    public $prettysize = '';
     public $md5 = '';
-    public $shortname = '';
     public $origname = '';
     public $t_filename = '';
     public $t_width = 0;

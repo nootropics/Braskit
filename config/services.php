@@ -65,7 +65,10 @@ $app['template.functions'] = function () {
 };
 
 $app['template.filters'] = function () {
-    return [];
+    return [
+        'shorten_filename' => 'bs_shorten_filename',
+        'format_size' => 'bs_format_size',
+    ];
 };
 
 $app['template.globals'] = function () use ($app) {

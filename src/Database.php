@@ -166,16 +166,14 @@ class Database {
     //
 
     public function insertFile(File $file, Post $post) {
-        $sth = $this->dbh->prepare("INSERT INTO {$this->prefix}files (postid, board, file, md5, origname, shortname, filesize, prettysize, width, height, thumb, t_width, t_height) VALUES (:postid, :board, :file, :md5, :origname, :shortname, :filesize, :prettysize, :width, :height, :thumb, :t_width, :t_height)");
+        $sth = $this->dbh->prepare("INSERT INTO {$this->prefix}files (postid, board, file, md5, origname, filesize, width, height, thumb, t_width, t_height) VALUES (:postid, :board, :file, :md5, :origname, :filesize, :width, :height, :thumb, :t_width, :t_height)");
 
         $sth->bindParam(':postid', $post->id, PDO::PARAM_INT);
         $sth->bindParam(':board', $post->board, PDO::PARAM_STR);
         $sth->bindParam(':file', $file->filename);
         $sth->bindParam(':md5', $file->md5);
         $sth->bindParam(':origname', $file->origname);
-        $sth->bindParam(':shortname', $file->shortname);
         $sth->bindParam(':filesize', $file->size);
-        $sth->bindParam(':prettysize', $file->prettysize);
         $sth->bindParam(':width', $file->width);
         $sth->bindParam(':height', $file->height);
         $sth->bindParam(':thumb', $file->t_filename);

@@ -90,9 +90,9 @@
 	<p class="post-file">
 		File: <a href="{{ context.board.path("src/"~file.file) }}" target="_blank">{{ file.file }}</a>
 		<em>(
-			{{- file.prettysize|raw }}, {{ file.width|raw }}x{{ file.height|raw -}}
+			{{- file.filesize|format_size }}, {{ file.width|raw }}x{{ file.height|raw -}}
 			{%- if context.thread and file.origname %},
-				<span title="{{ file.origname }}">{{ file.shortname }}</span>
+				<span title="{{ file.origname }}">{{ file.origname|shorten_filename }}</span>
 			{%- endif -%}
 		)</em>
 	</p>
@@ -119,7 +119,7 @@
         <p class="thumb-info">
           <label>
             <input type="checkbox" name="fileid[]" value="{{ file.id }}">
-            {{ file.shortname }} ({{ file.width|raw }}x{{ file.height|raw }})
+            {{ file.origname|shorten_filename }} ({{ file.width|raw }}x{{ file.height|raw }})
           </label>
         </p>
 

@@ -85,9 +85,7 @@ class File extends FileMetaData {
         $this->width = $this->driver->width;
         $this->height = $this->driver->height;
         $this->size = $upload->getSize();
-        $this->prettysize = make_size($this->size);
         $this->origname = $upload->getClientOriginalName();
-        $this->shortname = shorten_filename($this->origname);
         $this->md5 = md5_file($upload->getPathname());
     }
 
