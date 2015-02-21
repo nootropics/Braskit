@@ -103,7 +103,7 @@ function get_js() {
     // try loading from persistent cache
     $data = $app['cache']->get('js_cache');
 
-    if ($data !== false)
+    if ($data !== null)
         return $data;
 
     // output path

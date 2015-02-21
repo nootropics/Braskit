@@ -157,6 +157,7 @@ class Post extends View {
         // TODO: check if uploads are allowed
         // TODO: integrate file stuff into param class
         $upload = $app['request']->files->get('file');
+        $upload = isset($upload[0]) ? $upload[0] : null;
 
         $file = $board->handleUpload($upload);
 

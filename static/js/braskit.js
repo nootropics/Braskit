@@ -1,5 +1,5 @@
 /*
- * braskit.js - Copyright (c) 2013, 2014 Frank Usrs
+ * braskit.js - Copyright (c) 2013-2015 Frank Usrs
  *
  * See the LICENSE file for terms and conditions of use.
  */
@@ -186,6 +186,31 @@ function doReplyPage() {
     highlightPost(num);
 }
 
+function doFileInputs() {
+    var current = 1;
+    var max = Number($(this).data('maxfiles'));
+
+    function onChangeHandler() {
+        // get the file input identifier
+        var selfID = Number($(this).data("fileid"));
+
+        if (selfID === current && selfID < max) {
+            current += 1;
+
+            var input = $('<input type="file" name="file[]">');
+            input.data('fileid', current);
+            input.on('change', onChangeHandler);
+
+            // add new file input
+            $(this).parent().append('<br>').append(input);
+        }
+    }
+
+    // set a file input identifier
+    $(this).data("fileid", 1);
+    $(this).on('change', onChangeHandler);
+}
+
 function delformSubmit() {
     var cookie = $.cookie('password');
 
@@ -216,6 +241,8 @@ $(function () {
 
     // Focus stuff
     $('.focus').first().focus();
+
+    $('[data-maxfiles]').each(doFileInputs);
 
     $('[name=delform]').submit(delformSubmit);
 });

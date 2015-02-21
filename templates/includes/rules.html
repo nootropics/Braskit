@@ -1,5 +1,11 @@
 <ul>
   <li>Supported file types are: GIF, JPG, PNG</li>
-  <li>Maximum file size allowed is {{ board.config.get("max_kb") }} KB.</li>
+
+  {% if board.config.get("max_files") > 1 %}
+    <li>Maximum file size allowed is {{ board.config.get("max_kb") }} KB, up to a total of {{ board.config.get("max_kb_total") }} KB.</li>
+  {% else %}
+    <li>Maximum file size allowed is {{ board.config.get("max_kb") }} KB.</li>
+  {% endif %}
+
   <li>Images greater than {{ board.config.get("max_thumb_w") }}x{{ board.config.get("max_thumb_h") }} pixels will be thumbnailed.</li>
 </ul>

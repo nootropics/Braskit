@@ -64,6 +64,16 @@ $dict->add('max_kb', [
 	'type' => 'number',
 ]);
 
+$dict->add('max_kb_total', [
+    'default' => 10000,
+    'type' => 'number',
+]);
+
+$dict->add('max_files', [
+    'default' => 1,
+    'type' => 'number',
+]);
+
 $dict->add('date_format', [
     'default' => 'Y-m-d H:i:s',
     'type' => 'text',

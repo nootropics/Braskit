@@ -40,11 +40,20 @@
         <tr>
           <th>File</th>
           <td>
-            <input type="file" name="file">
+            <input type="file" name="file[]" data-maxfiles="{{ board.config.get("max_files") }}">
 
+            <noscript>
+              {% if board.config.get("max_files") > 1 %}
+                {% for x in 2..board.config.get("max_files") %}
+                  <br>
+                  <input type="file" name="file[]">
+                {% endfor %}
+              {% endif %}
+            </noscript>
+
+            {# Safeguard to prevent accidental thread creation (it's less
+             # annoying than accidental replies). #}
             {% if not thread and board.config.get("allow_thread_textonly") %}
-              {# Safeguard to prevent accidental thread creation (it's more
-               # annoying than accidental replies). #}
               <label>[<input type="checkbox" name="nofile" value="on"> No File]</label>
             {% endif %}
           </td>
