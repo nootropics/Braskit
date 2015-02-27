@@ -11,23 +11,28 @@ use Braskit\Cache\CacheInterface;
 use Braskit\Database;
 use Braskit\Error;
 
-class ConfigService implements ConfigServiceInterface {
+/**
+ * Configuration service.
+ *
+ * This implementation allows for lazy-loading of dictionaries.
+ */
+final class ConfigService implements ConfigServiceInterface {
     /**
      * @var CacheInterface
      */
-    public $cache;
+    private $cache;
 
     /**
      * @var Database
      */
-    public $db;
+    private $db;
 
     /**
      * Array of dictionary loaders.
      *
      * @var array
      */
-    protected $dictionaryLoaders = [];
+    private $dictionaryLoaders = [];
 
     /**
      * Constructor.
@@ -74,14 +79,7 @@ class ConfigService implements ConfigServiceInterface {
             throw new \InvalidArgumentException($msg);
         }
 
-        return new Pool($poolName, $poolArgs, $this);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function addDictionaryLoader(DictionaryLoaderInterface $loader) {
-        array_unshift($this->dictionaryLoaders, $loader);
+        return new Pool($poolName, $poolArgs, $this, $this->cache, $this->db);
     }
 
     /**
@@ -106,5 +104,14 @@ class ConfigService implements ConfigServiceInterface {
         }
 
         return $this->getDictionary($this->pools[$poolName]['dictionary']);
+    }
+
+    /**
+     * Registers a dictionary loader.
+     *
+     * @param DictionaryLoaderInterface $loader
+     */
+    public function addDictionaryLoader(DictionaryLoaderInterface $loader) {
+        array_unshift($this->dictionaryLoaders, $loader);
     }
 }

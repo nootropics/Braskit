@@ -12,18 +12,18 @@ use Pimple\Container;
 /**
  * Allows lazy loading of dictionaries using a Pimple container.
  */
-class PimpleAwareDictionaryLoader implements DictionaryLoaderInterface {
+final class PimpleAwareDictionaryLoader implements DictionaryLoaderInterface {
     /**
      * Assoc array of dictionary name => corresponding identifier in Pimple.
      *
      * @var array
      */
-    protected $dictionaries = [];
+    private $dictionaries = [];
 
     /**
      * @var Container
      */
-    protected $container;
+    private $container;
 
     /**
      * Constructor.

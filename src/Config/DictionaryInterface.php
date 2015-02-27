@@ -30,6 +30,8 @@ interface DictionaryInterface {
 
     /**
      * Retrieves the type for an option.
+     *
+     * @return string
      */
     public function getType($key);
 

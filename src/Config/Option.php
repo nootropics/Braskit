@@ -7,41 +7,41 @@
 
 namespace Braskit\Config;
 
-class Option implements OptionInterface {
+final class Option implements OptionInterface {
     /**
      * Option key.
      *
      * @var string
      */
-    protected $key;
+    private $key;
 
     /**
      * Option type.
      *
      * @var string
      */
-    protected $type;
+    private $type;
 
     /**
      * Default option value.
      *
      * @var mixed
      */
-    protected $default;
+    private $default;
 
     /**
      * Current value.
      *
      * @var mixed
      */
-    protected $value;
+    private $value;
 
     /**
      * Whether or not option is modified.
      *
      * @var boolean
      */
-    protected $modified;
+    private $modified;
 
     /**
      * Constructor.

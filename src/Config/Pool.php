@@ -7,39 +7,46 @@
 
 namespace Braskit\Config;
 
+use Braskit\Cache\CacheInterface;
+use Braskit\Database;
+
 /**
  * Default config pool implementation.
  *
- * This implementation relies on the ConfigService to provide caching and
- * database services. It is also dictionary-agnostic when reading values--only
- * when modifying options in the pool does it load the dictionary.
+ * This implementation is dictionary-agnostic when reading values--only when
+ * modifying options in the pool does it load the dictionary.
  */
-class Pool implements PoolInterface {
+final class Pool implements PoolInterface {
     /**
      * Pool name/identifier
      *
      * @var string
      */
-    protected $name;
+    private $name;
 
     /**
      * Pool arguments
      *
      * @var array
      */
-    protected $args;
+    private $args;
 
     /**
-     * @var ConfigService
+     * @var CacheInterface
      */
-    protected $service;
+    private $cache;
+
+    /**
+     * @var Database
+     */
+    private $db;
 
     /**
      * Whether the cache has been initialised or not.
      *
      * @var boolean
      */
-    protected $initialised = false;
+    private $initialised = false;
 
     /**
      * Cached key/value pairs for this pool.
@@ -59,33 +66,43 @@ class Pool implements PoolInterface {
      *
      * @var array
      */
-    protected $cache;
+    private $cachedPool;
 
     /**
      * Key for retrieving/storing the pool's options in cache.
      *
      * @var string
      */
-    protected $cacheKey;
+    private $cacheKey;
 
     /**
      * Dictionary. Lazy-loaded, use $this->getDict() instead.
      *
      * @var Dictionary|null
      */
-    protected $dict;
+    private $dict;
 
     /**
      * Constructor.
      *
-     * @param string $name           The name of this pool.
-     * @param array $args            The arguments for this pool instance.
-     * @param ConfigService $service The configuration service.
+     * @param string $name   The name of this pool.
+     * @param array $args    The arguments for this pool instance.
+     * @param ConfigServiceInterface $service
+     * @param CacheInterface
+     * @param Database
      */
-    public function __construct($name, array $args, ConfigService $service) {
+    public function __construct(
+        $name,
+        array $args,
+        ConfigServiceInterface $service,
+        CacheInterface $cache,
+        Database $db
+    ) {
         $this->name = $name;
         $this->args = $args;
         $this->service = $service;
+        $this->cache = $cache;
+        $this->db = $db;
     }
 
     /**
@@ -96,7 +113,7 @@ class Pool implements PoolInterface {
             $this->initialiseCache();
         }
 
-        return isset($this->cache[$key]);
+        return isset($this->cachedPool[$key]);
     }
 
     /**
@@ -107,11 +124,11 @@ class Pool implements PoolInterface {
             $this->initialiseCache();
         }
 
-        if (!isset($this->cache[$key])) {
+        if (!isset($this->cachedPool[$key])) {
             throw new \InvalidArgumentException("No such key: '$key'");
         }
 
-        return $this->cache[$key]['value'];
+        return $this->cachedPool[$key]['value'];
     }
 
     /**
@@ -136,11 +153,11 @@ class Pool implements PoolInterface {
             $this->initialiseCache();
         }
 
-        if (!isset($this->cache[$key])) {
+        if (!isset($this->cachedPool[$key])) {
             throw new \InvalidArgumentException("No such key: '$key'");
         }
 
-        return $this->cache[$key]['modified'];
+        return $this->cachedPool[$key]['modified'];
     }
 
     /**
@@ -160,45 +177,45 @@ class Pool implements PoolInterface {
     /**
      * Sets up the cache so we can look up stuff fast.
      */
-    protected function initialiseCache() {
+    private function initialiseCache() {
         $cacheKey = $this->getCacheKey();
 
         // retrieve cache
-        $this->cache = $this->service->cache->get($cacheKey);
+        $this->cachedPool = $this->cache->get($cacheKey);
 
-        if (!is_array($this->cache)) {
+        if (!is_array($this->cachedPool)) {
             // no cache - we need to build it
-            $this->cache = [];
+            $this->cachedPool = [];
 
             $dict = $this->getDict();
 
             // get the options in the db
-            $db = $this->service->db->getPoolOptions($this->name, $this->args);
+            $db = $this->db->getPoolOptions($this->name, $this->args);
 
             foreach ($db as $option) {
                 // set to value from db
-                $this->cache[$option->key]['value'] = $option->value;
+                $this->cachedPool[$option->key]['value'] = $option->value;
 
                 // assume that if an option is stored in the database, its value
                 // deviates from that of the dictionary's. this behaviour ought
                 // to be changed, as the database cannot enforce that stored
                 // values be non-default.
-                $this->cache[$option->key]['modified'] = true;
+                $this->cachedPool[$option->key]['modified'] = true;
             }
 
             // add remaining options using the dictionary
             foreach ($dict->getKeys() as $key) {
-                if (!isset($this->cache[$key])) {
+                if (!isset($this->cachedPool[$key])) {
                     // set to default value
-                    $this->cache[$key]['value'] = $dict->getDefault($key);
+                    $this->cachedPool[$key]['value'] = $dict->getDefault($key);
 
                     // if it's from the dictionary, it's unmodified
-                    $this->cache[$key]['modified'] = false;
+                    $this->cachedPool[$key]['modified'] = false;
                 }
             }
 
             // save the generated cache
-            $this->service->cache->set($cacheKey, $this->cache);
+            $this->cache->set($cacheKey, $this->cachedPool);
         }
 
         // don't run this again
@@ -210,7 +227,7 @@ class Pool implements PoolInterface {
      *
      * @return string The key
      */
-    protected function getCacheKey() {
+    private function getCacheKey() {
         if (!isset($this->cacheKey)) {
             // combine pool name and args into one array
             $args = array_merge([$this->name], $this->args);
@@ -230,7 +247,7 @@ class Pool implements PoolInterface {
      *
      * @return Dictionary
      */
-    protected function getDict() {
+    private function getDict() {
         if (!isset($this->dict)) {
             $this->dict = $this->service->getDictionaryByPoolName($this->name);
         }

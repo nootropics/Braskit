@@ -10,13 +10,13 @@ namespace Braskit\Config;
 /**
  * @todo Complete this.
  */
-class Dictionary implements DictionaryInterface {
+final class Dictionary implements DictionaryInterface {
     /**
      * List of valid keys.
      *
      * @var array
      */
-    protected $keys = [];
+    private $keys = [];
 
     /**
      * {@inheritdoc}

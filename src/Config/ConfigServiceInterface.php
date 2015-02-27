@@ -12,12 +12,12 @@ namespace Braskit\Config;
  * implementation.
  *
  * This interface is enterprise quality.
+ *
+ * @todo hasDictionary/hasPool/etc.
  */
 interface ConfigServiceInterface {
     /**
-     * Registers a pool identifier (or pool name) and associates it with a
-     * dictionary. The dictionary shall not have to be registered at the time
-     * this method is called.
+     * Registers a pool identifier and associates it with a dictionary.
      *
      * @param string $poolName Name of pool
      * @param string $dictName Name of associated dictionary
@@ -35,17 +35,7 @@ interface ConfigServiceInterface {
     public function getPool($poolName, array $poolArgs = []);
 
     /**
-     * Registers a dictionary loader.
-     *
-     * @param DictionaryLoaderInterface $loader
-     */
-    public function addDictionaryLoader(DictionaryLoaderInterface $loader);
-
-    /**
      * Retrieves a dictionary by its name.
-     *
-     * This method must be able to retrieve dictionaries from the dictionary
-     * loaders, querying every loader in the reverse order they were added.
      *
      * @param string $dictName Name of dictionary.
      *

@@ -7,28 +7,28 @@
 
 namespace Braskit\Config;
 
-class PoolIterator implements \Iterator {
+final class PoolIterator implements \Iterator {
     /**
      * @var array
      */
-    protected $keys;
+    private $keys;
 
     /**
      * Iterator position.
      *
      * @var int
      */
-    protected $pos = 0;
+    private $pos = 0;
 
     /**
      * @var DictionaryInterface
      */
-    protected $dict;
+    private $dict;
 
     /**
      * @var PoolInterface
      */
-    protected $pool;
+    private $pool;
 
     /**
      * Constructor.
